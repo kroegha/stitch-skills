@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 r"""Upload an image, HTML, or Markdown file to a Stitch project via BatchCreateScreens.
 
 WHY THIS SCRIPT EXISTS:
@@ -19,16 +19,16 @@ SUPPORTED FILE TYPES:
     - Markdown: .md
 
 Usage:
-    python3 upload_to_stitch.py \
+    python upload_to_stitch.py \
         --project-id <PROJECT_ID> \
         --file-path <PATH_TO_FILE> \
         [--api-url <STITCH_API_BASE_URL>] \
-        [--api-key <API_KEY>] \
         [--title <SCREEN_TITLE>] \
         [--generated-by <GENERATED_BY>] \
         [--create-screen-instances]
 """
 
+import os
 import argparse
 import base64
 import json
@@ -199,8 +199,11 @@ def parse_args():
   )
   parser.add_argument(
       "--api-key",
-      required=True,
-      help="API key for the Stitch API.",
+      default=os.environ.get("STITCH_API_KEY"),
+      help=(
+          "API key for the Stitch API. Defaults to the STITCH_API_KEY environment"
+          " variable; prefer that, so the key never appears on a command line."
+      ),
   )
   parser.add_argument(
       "--title",
@@ -220,6 +223,9 @@ def parse_args():
 
 def main():
   args = parse_args()
+  if not args.api_key:
+    print("Error: STITCH_API_KEY is not set. Set it in the environment and retry.")
+    sys.exit(1)
 
   file_path = args.file_path
   file_suffix = file_path.suffix.lower()

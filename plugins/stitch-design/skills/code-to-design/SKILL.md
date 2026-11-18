@@ -1,14 +1,8 @@
 ---
-name: stitch::code-to-design
+name: stitch-code-to-design
 description: >-
   Convert frontend code (Vite, React, Angular, Vue, etc.) to a Stitch Design by chaining
   static HTML extraction, design system extraction, and file upload. **ALWAYS** use this skill when the user's intent is to move existing web apps or React/Angular/Vue components into Stitch (e.g., requests to "save", "migrate", or "upload"). You must use this skill even for simple "save" operations, as it is the only way to ensure the design system is extracted and assets are properly linked.
-allowed-tools:
-  - "stitch*:*"
-  - "Bash"
-  - "Read"
-  - "Write"
-  - "web_fetch"
 ---
 
 # Code to Design
@@ -34,7 +28,7 @@ Follow these steps to convert your existing code.
 #### 1. Extract Self-Contained HTML
 
 Delegate to the `extract-static-html` skill to generate a standalone HTML file.
-Read [skills/extract-static-html/SKILL.md](../extract-static-html/SKILL.md) for detailed instructions and script usage.
+Read the `stitch-extract-static-html` skill (in a repository checkout: `../extract-static-html/SKILL.md`) for detailed instructions and script usage.
 
 Expected output: A single file like `/path/to/extracted/standalone.html`.
 
@@ -50,7 +44,7 @@ If the user reports issues after reviewing, fix them before continuing.
 
 Delegate to the `extract-design-md` skill to analyze the project's source files
 (components, stylesheets, theme configs) and produce a design system. Read
-[skills/extract-design-md/SKILL.md](../extract-design-md/SKILL.md) for the
+the `stitch-extract-design-md` skill (in a repository checkout: `../extract-design-md/SKILL.md`) for the
 full analysis workflow.
 
 Write `.stitch/DESIGN.md` following the `extract-design-md` skill's output
@@ -60,19 +54,19 @@ structure.
 
 Delegate to the `manage-design-system` skill to upload the `DESIGN.md` and
 create the design system in Stitch. Read
-[skills/manage-design-system/SKILL.md](../manage-design-system/SKILL.md) for
+the `stitch-manage-design-system` skill (in a repository checkout: `../manage-design-system/SKILL.md`) for
 the full workflow (upload script usage, `create_design_system_from_design_md`
 call, and required schemas). Pass
-`--generated-by 'stitch::code-to-design'` when uploading.
+`--generated-by 'stitch-code-to-design'` when uploading.
 
 #### 5. Upload HTML to Stitch
 
 Use the same `upload-to-stitch` skill's script to upload the extracted HTML file.
-Read [skills/upload-to-stitch/SKILL.md](../upload-to-stitch/SKILL.md) for detailed instructions and script usage.
+Read the `stitch-upload-to-stitch` skill (in a repository checkout: `../upload-to-stitch/SKILL.md`) for detailed instructions and script usage.
 
 You will need:
 - The path to the standalone HTML file generated in Step 1.
 - Your Stitch API Key (same key used in Step 4).
 - The target `projectId`.
-- The `--generated-by` argument set to `'stitch::extract-static-html'`.
+- The `--generated-by` argument set to `'stitch-extract-static-html'`.
 - The `--title` argument set to the **route path** of the page (e.g., `'/dashboard'`, `'/settings/profile'`, `'/inbox'`) so that the screen name/title in Stitch clearly identifies its route in the application.

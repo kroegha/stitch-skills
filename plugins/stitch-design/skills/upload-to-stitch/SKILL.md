@@ -1,16 +1,10 @@
 ---
-name: stitch::upload-to-stitch
+name: stitch-upload-to-stitch
 description: >-
   Upload local assets (images, mockups, extracted HTML, design markdown) to a Stitch project.
   ALWAYS use this skill when you need to upload visual assets, HTML pages, or design docs
   to Stitch, particularly when direct MCP tool calls fail or truncate due to
   base64 token limits.
-allowed-tools:
-  - "stitch*:*"
-  - "Bash"
-  - "Read"
-  - "Write"
-  - "web_fetch"
 ---
 
 # Upload-to-Stitch
@@ -31,18 +25,19 @@ Use `list_projects` to find the correct `projectId`.
 
 ### 2. Get the API Key
 
-Locate your active MCP server configuration file and extract the API key:
-- **Antigravity**: `.gemini/antigravity/mcp_config.json` or `.gemini/jetski/mcp_config.json`
-- **Gemini CLI**: `~/.gemini/settings.json` or `~/.gemini/extensions/Stitch/gemini-extension.json`
-- **Claude Code**: `~/.claude.json`
+The script reads the key from the `STITCH_API_KEY` environment variable. Check that it is set,
+without printing it:
 
-Extract:
-- **API Key**: From the `X-Goog-Api-Key` header or auth argument
-- **MCP URL** (optional): From the `httpUrl` or endpoint argument (defaults to
-  `https://stitch.googleapis.com`)
+```bash
+[ -n "$STITCH_API_KEY" ] && echo "key is set" || echo "key is NOT set"
+```
 
 > [!IMPORTANT]
-> If you cannot find the API key in any of these locations, or if you cannot access these files, you MUST ask the user to provide the Stitch API key. Do not proceed without a valid API key.
+> **Never read an agent or MCP configuration file to find the key** (`~/.claude.json`,
+> `~/.gemini/settings.json`, `mcp_config.json` and the like). Those files hold the credentials of
+> every connected server. Never pass the key on the command line or echo it, where it would land in
+> the shell history and the transcript. If the variable is not set, stop and ask the user to set
+> `STITCH_API_KEY` themselves; do not ask them to paste the key into the conversation.
 
 ### 3. Run Upload Script
 
@@ -55,10 +50,9 @@ Extract:
 Use `run_command` to execute the Python script:
 
 ```bash
-python3 <SKILL_DIR>/scripts/upload_to_stitch.py \
+python <SKILL_DIR>/scripts/upload_to_stitch.py \
   --project-id <PROJECT_ID> \
   --file-path <PATH_TO_FILE> \
-  --api-key <API_KEY> \
   [--api-url <STITCH_API_URL>] \
   [--title <SCREEN_TITLE>] \
   [--generated-by <GENERATED_BY>]
@@ -70,11 +64,10 @@ python3 <SKILL_DIR>/scripts/upload_to_stitch.py \
 > 
 > The script automatically attempts to use the `certifi` package to load the CA bundle if it is installed in your python environment. If `certifi` is not installed, you can either install it (`pip install certifi`) or manually supply the `SSL_CERT_FILE` environment variable when running the script:
 > ```bash
-> SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") python3 <SKILL_DIR>/scripts/upload_to_stitch.py \
+> SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())") python <SKILL_DIR>/scripts/upload_to_stitch.py \
 >   --project-id <PROJECT_ID> \
 >   --file-path <PATH_TO_FILE> \
->   --api-key <API_KEY> \
->   [--api-url <STITCH_API_URL>] \
+> >   [--api-url <STITCH_API_URL>] \
 >   [--title <SCREEN_TITLE>] \
 >   [--generated-by <GENERATED_BY>]
 > ```
@@ -98,4 +91,4 @@ The script auto-detects MIME type from the file extension.
 - `--api-key`: **Required**. API key for Stitch authorization.
 - `--api-url`: Optional. Base URL of the Stitch API. Defaults to `https://stitch.googleapis.com`.
 - `--title`: Optional. Title for the uploaded screen. When uploading extracted HTML from a web app, set this to the **route path** of the page (e.g., `'/dashboard'`, `'/settings/profile'`, `'/inbox'`) so that the screen name/title in Stitch clearly identifies the route.
-- `--generated-by`: Optional. Specify how the uploaded file was generated (e.g., 'stitch::extract-static-html' skill, 'Claude Code', 'Codex', 'Gemini' etc.).
+- `--generated-by`: Optional. Specify how the uploaded file was generated (e.g., 'stitch-extract-static-html' skill, 'Claude Code', 'Codex', 'Gemini' etc.).
